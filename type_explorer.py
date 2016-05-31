@@ -63,6 +63,9 @@ class BaseTypeExplorer:
       indent_str += " "
     return indent_str
 
+  def is_interesting(self):
+    return self.type_name() in INTERESTING_TYPES
+
 class InterestingTypeExplorer(BaseTypeExplorer):
   def __init__(self, typ, name = "", depth = 0, indent = 4, parent = None):
     BaseTypeExplorer.__init__(self, typ, name, depth, indent, parent)
@@ -90,10 +93,11 @@ class InterestingTypeExplorer(BaseTypeExplorer):
 class DictionaryExplorer(InterestingTypeExplorer):
   def explore(self):
     for key, val in self.typ.iteritems():
-      if self.type_name(val) in INTERESTING_TYPES:
-        self.interesting.append(TypeExplorer(val, key, self.depth + 1, self.indent, self))
+      type_explorer = TypeExplorer(val, key, self.depth + 1, self.indent, self)
+      if type_explorer.is_interesting():
+        self.interesting.append(type_explorer)
       else:
-        self.boring.append(TypeExplorer(val, key, self.depth + 1, self.indent, self))
+        self.boring.append(type_explorer)
 
   def __str__(self):
     type_str = "{}".format(self.name).strip()
@@ -113,10 +117,11 @@ class DictionaryExplorer(InterestingTypeExplorer):
 class ListExplorer(InterestingTypeExplorer):
   def explore(self):
     for item in self.typ:
-      if self.type_name(item) in INTERESTING_TYPES:
-        self.interesting.append(TypeExplorer(item, None, self.depth + 1, self.indent, self))
+      type_explorer = TypeExplorer(item, None, self.depth + 1, self.indent, self)
+      if type_explorer.is_interesting():
+        self.interesting.append(type_explorer)
       else:
-        self.boring.append(TypeExplorer(item, None, self.depth + 1, self.indent, self))
+        self.boring.append(type_explorer)
 
   def __str__(self):
     result = []
@@ -131,15 +136,6 @@ class ListExplorer(InterestingTypeExplorer):
       result.append("{}{} list of {}".format(self.indent_str(self.depth + 1), prefix, self.unique_boring_type_pretty_names_to_sentence()))
     result.append("{}]".format(self.indent_str()))
     return "\n".join(result)
-
-my_string = "my string"
-print TypeExplorer(my_string)
-print TypeExplorer(my_string, "my_string")
-my_num = 12.3
-print TypeExplorer(my_num)
-print TypeExplorer(my_num, "my_num")
-print TypeExplorer([1, 2, 3, 4], "mylist")
-print TypeExplorer({ "a": 1, "b": { "key": "val" }, "c": [1, 2, 3, 4], "d": [1, "2", 3, 4] }, "data")
 
 
 
